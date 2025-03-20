@@ -54,7 +54,7 @@ def setup_chinese_font():
 
 # 从环境变量获取配置，如果不存在则使用默认值
 BASE_URL = os.environ.get('SHORT_URL_API', 'http://localhost:8080/short-url')
-NUM_REQUESTS = int(os.environ.get('TEST_REQUESTS', '100'))
+NUM_REQUESTS = int(os.environ.get('TEST_REQUESTS', '10000'))
 MAX_WORKERS = int(os.environ.get('TEST_CONCURRENCY', '50'))
 SAVE_RESULTS = os.environ.get('SAVE_RESULTS', 'true').lower() == 'true'
 GENERATE_CHART = os.environ.get('GENERATE_CHART', 'true').lower() == 'true'
