@@ -38,6 +38,10 @@ ENV JPA_DDL_AUTO=update
 ENV JPA_SHOW_SQL=true
 ENV SERVER_PORT=8080
 
+# 暴露 Kafka 相关环境变量
+ENV SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+ENV SPRING_KAFKA_CONSUMER_GROUP_ID=short-url-group
+
 # 暴露端口
 EXPOSE ${SERVER_PORT}
 
@@ -49,4 +53,6 @@ ENTRYPOINT ["java", \
     "-Dspring.jpa.hibernate.ddl-auto=${JPA_DDL_AUTO}", \
     "-Dspring.jpa.show-sql=${JPA_SHOW_SQL}", \
     "-Dserver.port=${SERVER_PORT}", \
+    "-Dspring.kafka.bootstrap-servers=${SPRING_KAFKA_BOOTSTRAP_SERVERS}", \
+    "-Dspring.kafka.consumer.group-id=${SPRING_KAFKA_CONSUMER_GROUP_ID}", \
     "-jar", "app.jar"]

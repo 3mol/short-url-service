@@ -2,6 +2,7 @@ package com.example.shorturl.service;
 
 import com.example.shorturl.entity.ShortUrl;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ShortUrlService {
@@ -26,4 +27,6 @@ public interface ShortUrlService {
      * @return 短链接实体
      */
     Optional<ShortUrl> getShortUrlInfo(String shortUrl);
-} 
+
+    void addBatch(List<ShortUrl> list);
+}
