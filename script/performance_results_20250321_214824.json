@@ -1,0 +1,30 @@
+{
+  "test_config": {
+    "base_url": "http://192.168.31.34:8081/short-url",
+    "num_requests": 10000,
+    "max_workers": 50,
+    "timestamp": "20250321_214824"
+  },
+  "create_test": {
+    "total_requests": 10000,
+    "successful_requests": 10000,
+    "total_time": 15.006206512451172,
+    "requests_per_second": 666.3909357573249,
+    "avg_response_time": 74.71927986145019,
+    "p50_response_time": 72.78072834014893,
+    "p90_response_time": 86.9293212890625,
+    "p95_response_time": 93.43889951705931,
+    "p99_response_time": 139.0950727462769
+  },
+  "get_test": {
+    "total_requests": 10000,
+    "successful_requests": 10000,
+    "total_time": 8.323465585708618,
+    "requests_per_second": 1201.422640248551,
+    "avg_response_time": 38.18965871334076,
+    "p50_response_time": 34.7743034362793,
+    "p90_response_time": 57.259321212768555,
+    "p95_response_time": 65.84881544113158,
+    "p99_response_time": 88.48678588867203
+  }
+}
