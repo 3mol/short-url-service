@@ -5,31 +5,32 @@ import com.example.shorturl.message.ShortUrlMessage;
 import com.example.shorturl.repository.ShortUrlRepository;
 import com.example.shorturl.service.KafkaProducerService;
 import com.example.shorturl.service.ShortUrlService;
-import jakarta.persistence.EntityManager;
-import java.util.List;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class ShortUrlServiceImpl implements ShortUrlService {
 
-    private final ShortUrlRepository shortUrlRepository;
-    private final KafkaProducerService kafkaProducerService;
-    private final EntityManager entityManager;
+    @Resource
+    private ShortUrlRepository shortUrlRepository;
 
-    @Autowired
-    public ShortUrlServiceImpl(ShortUrlRepository shortUrlRepository, KafkaProducerService kafkaProducerService, EntityManager entityManager) {
-        this.shortUrlRepository = shortUrlRepository;
-        this.kafkaProducerService = kafkaProducerService;
-        this.entityManager = entityManager;
-    }
+    @Resource
+    private RedisTemplate<String, String> redisTemplate;
+
+    @Resource
+    KafkaProducerService kafkaProducerService;
+
+    private static final String REDIS_KEY_PREFIX = "short_url:";
+    private static final long REDIS_EXPIRE_TIME = 1;
+    private static final TimeUnit REDIS_EXPIRE_UNIT = TimeUnit.MINUTES;
 
     @Override
-    @Transactional
     public String createShortUrl(String originalUrl) {
         // 检查URL是否已存在
         Optional<ShortUrl> existingUrl = shortUrlRepository.findByOriginalUrl(originalUrl);
@@ -38,43 +39,52 @@ public class ShortUrlServiceImpl implements ShortUrlService {
         }
 
         // 生成短链接
-        String shortUrl = generateShortUrl();
+        ShortUrl shortUrl = new ShortUrl();
+        shortUrl.setOriginalUrl(originalUrl);
+        shortUrl.setShortUrl(generateShortCode());
+        // 保存到Redis
+        String redisKey = REDIS_KEY_PREFIX + shortUrl.getShortUrl();
+        redisTemplate.opsForValue().set(redisKey, originalUrl, REDIS_EXPIRE_TIME, REDIS_EXPIRE_UNIT);
+        // 发送消息到Kafka
+        ShortUrlMessage message = new ShortUrlMessage(shortUrl.getShortUrl(), originalUrl);
+        kafkaProducerService.sendShortUrlMessage(message);
+        return shortUrl.getShortUrl();
+    }
 
-        // 确保短链接唯一
-        while (shortUrlRepository.findByShortUrl(shortUrl).isPresent()) {
-            shortUrl = generateShortUrl();
+    @Override
+    public Optional<String> getOriginalUrl(String shortCode) {
+        // 先从Redis中获取
+        String redisKey = REDIS_KEY_PREFIX + shortCode;
+        String longUrl = redisTemplate.opsForValue().get(redisKey);
+
+        if (longUrl != null) {
+            return Optional.of(longUrl);
         }
 
-        // 发送消息到Kafka
-        ShortUrlMessage message = new ShortUrlMessage(shortUrl, originalUrl);
-        kafkaProducerService.sendShortUrlMessage(message);
+        // Redis中没有，从数据库获取
+        Optional<ShortUrl> shortUrlOpt = shortUrlRepository.findByShortUrl(shortCode);
+        if (shortUrlOpt.isPresent()) {
+            ShortUrl shortUrl = shortUrlOpt.get();
+            // 更新Redis缓存
+            redisTemplate.opsForValue().set(redisKey, shortUrl.getOriginalUrl(), REDIS_EXPIRE_TIME, REDIS_EXPIRE_UNIT);
+            return Optional.of(shortUrl.getOriginalUrl());
+        }
 
-        return shortUrl;
+        return Optional.empty();
     }
 
     @Override
-    public Optional<String> getOriginalUrl(String shortUrl) {
-        return shortUrlRepository.findByShortUrl(shortUrl)
-           .map(ShortUrl::getOriginalUrl);
+    public Optional<ShortUrl> getShortUrlInfo(String shortCode) {
+        return shortUrlRepository.findByShortUrl(shortCode);
     }
 
     @Override
-    public Optional<ShortUrl> getShortUrlInfo(String shortUrl) {
-        return shortUrlRepository.findByShortUrl(shortUrl);
-    }
-
-    @Transactional(rollbackFor = Exception.class)
     public void addBatch(List<ShortUrl> list) {
-        shortUrlRepository.saveAllAndFlush(list);
+        shortUrlRepository.saveAll(list);
     }
 
-    /**
-     * 生成短链接
-     *
-     * @return 生成的短链接
-     */
-    private String generateShortUrl() {
-        // 使用UUID生成随机字符串并截取前8位
-        return UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+    private String generateShortCode() {
+        // 生成6位随机字符串
+        return java.util.UUID.randomUUID().toString().substring(0, 6);
     }
 } 

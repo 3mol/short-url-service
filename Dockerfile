@@ -41,6 +41,10 @@ ENV SERVER_PORT=8080
 # 暴露 Kafka 相关环境变量
 ENV SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 ENV SPRING_KAFKA_CONSUMER_GROUP_ID=short-url-group
+# 暴露 Redis 相关环境变量
+ENV SPRING_REDIS_HOST=redis
+ENV SPRING_REDIS_PORT=6379
+ENV SPRING_REDIS_DB=0
 
 # 暴露端口
 EXPOSE ${SERVER_PORT}
@@ -55,4 +59,7 @@ ENTRYPOINT ["java", \
     "-Dserver.port=${SERVER_PORT}", \
     "-Dspring.kafka.bootstrap-servers=${SPRING_KAFKA_BOOTSTRAP_SERVERS}", \
     "-Dspring.kafka.consumer.group-id=${SPRING_KAFKA_CONSUMER_GROUP_ID}", \
+    "-Dspring.data.redis.host=${SPRING_REDIS_HOST}", \
+    "-Dspring.data.redis.port=${SPRING_REDIS_PORT}", \
+    "-Dspring.data.redis.database=${SPRING_REDIS_DB}", \
     "-jar", "app.jar"]

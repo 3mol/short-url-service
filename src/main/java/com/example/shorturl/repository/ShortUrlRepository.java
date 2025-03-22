@@ -8,7 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface ShortUrlRepository extends JpaRepository<ShortUrl, Long> {
-    
     /**
      * 根据短链接查询记录
      * @param shortUrl 短链接
