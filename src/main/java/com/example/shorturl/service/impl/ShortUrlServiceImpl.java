@@ -32,12 +32,6 @@ public class ShortUrlServiceImpl implements ShortUrlService {
 
     @Override
     public String createShortUrl(String originalUrl) {
-        // 检查URL是否已存在
-        Optional<ShortUrl> existingUrl = shortUrlRepository.findByOriginalUrl(originalUrl);
-        if (existingUrl.isPresent()) {
-            return existingUrl.get().getShortUrl();
-        }
-
         // 生成短链接
         ShortUrl shortUrl = new ShortUrl();
         shortUrl.setOriginalUrl(originalUrl);
@@ -80,7 +74,12 @@ public class ShortUrlServiceImpl implements ShortUrlService {
 
     @Override
     public void addBatch(List<ShortUrl> list) {
-        shortUrlRepository.saveAll(list);
+        // 检查URL是否已存在
+        final var saveToDb = list.stream().filter(i -> {
+            Optional<ShortUrl> existingUrl = shortUrlRepository.findByOriginalUrl(i.getOriginalUrl());
+            return existingUrl.isEmpty();
+        }).toList();
+        shortUrlRepository.saveAll(saveToDb);
     }
 
     private String generateShortCode() {

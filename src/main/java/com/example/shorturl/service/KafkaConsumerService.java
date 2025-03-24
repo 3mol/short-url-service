@@ -30,7 +30,7 @@ public class KafkaConsumerService {
     }
 
     @KafkaListener(
-       topicPattern = "short-url-topic",
+       topicPattern = KafkaProducerService.TOPIC,
        groupId = "short-url-group",
        containerFactory = "batchFactory",
        properties = {"max.poll.records=200",
