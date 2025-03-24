@@ -84,6 +84,23 @@ services:
     volumes:
       - redis_data:/data
 
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+#    environment:
+#      - STORAGE_TYPE=mysql
+#      - MYSQL_HOST=jdbc:mysql://mysql:3306/short-url?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=UTC
+#      - MYSQL_TCP_PORT=3306
+#      - MYSQL_DB=zipkin
+#      - MYSQL_USER=root
+#      - MYSQL_PASS=123456
+#    depends_on:
+#      - mysql
+    networks:
+      - short-url-network
+
 volumes:
   mysql-data:
     driver: local

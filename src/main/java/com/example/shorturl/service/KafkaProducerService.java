@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class KafkaProducerService {
-    private static final String TOPIC = "short-url-topic";
+    public static final String TOPIC = "short-url-topic";
     @Resource
     private KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;

@@ -3,9 +3,11 @@ package com.example.shorturl.service.impl;
 import com.example.shorturl.entity.ShortUrl;
 import com.example.shorturl.message.ShortUrlMessage;
 import com.example.shorturl.repository.ShortUrlRepository;
+import com.example.shorturl.service.AsyncService;
 import com.example.shorturl.service.KafkaProducerService;
 import com.example.shorturl.service.ShortUrlService;
 import jakarta.annotation.Resource;
+import java.util.concurrent.CompletableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -26,28 +28,27 @@ public class ShortUrlServiceImpl implements ShortUrlService {
     @Resource
     KafkaProducerService kafkaProducerService;
 
+    @Resource
+    AsyncService asyncService;
+
     private static final String REDIS_KEY_PREFIX = "short_url:";
     private static final long REDIS_EXPIRE_TIME = 1;
     private static final TimeUnit REDIS_EXPIRE_UNIT = TimeUnit.MINUTES;
 
     @Override
     public String createShortUrl(String originalUrl) {
-        // 检查URL是否已存在
-        Optional<ShortUrl> existingUrl = shortUrlRepository.findByOriginalUrl(originalUrl);
-        if (existingUrl.isPresent()) {
-            return existingUrl.get().getShortUrl();
-        }
-
         // 生成短链接
         ShortUrl shortUrl = new ShortUrl();
         shortUrl.setOriginalUrl(originalUrl);
         shortUrl.setShortUrl(generateShortCode());
-        // 保存到Redis
-        String redisKey = REDIS_KEY_PREFIX + shortUrl.getShortUrl();
-        redisTemplate.opsForValue().set(redisKey, originalUrl, REDIS_EXPIRE_TIME, REDIS_EXPIRE_UNIT);
-        // 发送消息到Kafka
-        ShortUrlMessage message = new ShortUrlMessage(shortUrl.getShortUrl(), originalUrl);
-        kafkaProducerService.sendShortUrlMessage(message);
+        asyncService.runSync(() -> {
+            // 保存到Redis
+            String redisKey = REDIS_KEY_PREFIX + shortUrl.getShortUrl();
+            redisTemplate.opsForValue().set(redisKey, originalUrl, REDIS_EXPIRE_TIME, REDIS_EXPIRE_UNIT);
+            // 发送消息到Kafka
+            ShortUrlMessage message = new ShortUrlMessage(shortUrl.getShortUrl(), originalUrl);
+            kafkaProducerService.sendShortUrlMessage(message);
+        });
         return shortUrl.getShortUrl();
     }
 
@@ -80,7 +81,12 @@ public class ShortUrlServiceImpl implements ShortUrlService {
 
     @Override
     public void addBatch(List<ShortUrl> list) {
-        shortUrlRepository.saveAll(list);
+        // 检查URL是否已存在
+        final var saveToDb = list.stream().filter(i -> {
+            Optional<ShortUrl> existingUrl = shortUrlRepository.findByOriginalUrl(i.getOriginalUrl());
+            return existingUrl.isEmpty();
+        }).toList();
+        shortUrlRepository.saveAll(saveToDb);
     }
 
     private String generateShortCode() {
