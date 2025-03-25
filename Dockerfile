@@ -1,25 +1,25 @@
-# 第一阶段：构建阶段
-FROM maven:3.9.6-eclipse-temurin-17 AS builder
-
-# 设置工作目录
-WORKDIR /app
-
-# 复制Maven配置文件
-COPY pom.xml .
-COPY .mvn .mvn
-
-# 复制 Maven settings.xml
-COPY .mvn/settings/settings.xml /root/.m2/settings.xml
-
-# 下载所有依赖项，但不构建应用程序
-# 这一步骤依赖将被缓存，除非pom.xml文件发生变化
-RUN mvn dependency:go-offline -B
-
-# 复制源代码
-COPY src src
-
-# 编译并打包应用程序
-RUN mvn package -DskipTests
+## 第一阶段：构建阶段
+#FROM maven:3.9.6-eclipse-temurin-17 AS builder
+#
+## 设置工作目录
+#WORKDIR /app
+#
+## 复制Maven配置文件
+#COPY pom.xml .
+#COPY .mvn .mvn
+#
+## 复制 Maven settings.xml
+#COPY .mvn/settings/settings.xml /root/.m2/settings.xml
+#
+## 下载所有依赖项，但不构建应用程序
+## 这一步骤依赖将被缓存，除非pom.xml文件发生变化
+#RUN mvn dependency:go-offline -B
+#
+## 复制源代码
+#COPY src src
+#
+## 编译并打包应用程序
+#RUN mvn package -DskipTests
 
 # 第二阶段：运行阶段
 FROM eclipse-temurin:17-jre-jammy
@@ -28,7 +28,7 @@ FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
 # 从构建阶段复制JAR文件
-COPY --from=builder /app/target/*.jar app.jar
+COPY /target/*.jar app.jar
 
 # 暴露数据库相关环境变量（根据application.properties中的配置）
 ENV DB_URL=jdbc:mysql://localhost:3306/short-url
@@ -45,6 +45,7 @@ ENV SPRING_KAFKA_CONSUMER_GROUP_ID=short-url-group
 ENV SPRING_REDIS_HOST=redis
 ENV SPRING_REDIS_PORT=6379
 ENV SPRING_REDIS_DB=0
+ENV ZIPKIN_URL=http://zipkin:9411/api/v2/spans
 
 # 暴露端口
 EXPOSE ${SERVER_PORT}
@@ -62,4 +63,5 @@ ENTRYPOINT ["java", \
     "-Dspring.data.redis.host=${SPRING_REDIS_HOST}", \
     "-Dspring.data.redis.port=${SPRING_REDIS_PORT}", \
     "-Dspring.data.redis.database=${SPRING_REDIS_DB}", \
+    "-Dmanagement.zipkin.tracing.endpoint=${ZIPKIN_URL}", \
     "-jar", "app.jar"]
