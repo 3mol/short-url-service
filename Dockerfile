@@ -51,17 +51,17 @@ ENV ZIPKIN_URL=http://zipkin:9411/api/v2/spans
 EXPOSE ${SERVER_PORT}
 
 # 启动应用程序
-ENTRYPOINT ["java", \
-    "-Dspring.datasource.url=${DB_URL}", \
-    "-Dspring.datasource.username=${DB_USERNAME}", \
-    "-Dspring.datasource.password=${DB_PASSWORD}", \
-    "-Dspring.jpa.hibernate.ddl-auto=${JPA_DDL_AUTO}", \
-    "-Dspring.jpa.show-sql=${JPA_SHOW_SQL}", \
-    "-Dserver.port=${SERVER_PORT}", \
-    "-Dspring.kafka.bootstrap-servers=${SPRING_KAFKA_BOOTSTRAP_SERVERS}", \
-    "-Dspring.kafka.consumer.group-id=${SPRING_KAFKA_CONSUMER_GROUP_ID}", \
-    "-Dspring.data.redis.host=${SPRING_REDIS_HOST}", \
-    "-Dspring.data.redis.port=${SPRING_REDIS_PORT}", \
-    "-Dspring.data.redis.database=${SPRING_REDIS_DB}", \
-    "-Dmanagement.zipkin.tracing.endpoint=${ZIPKIN_URL}", \
-    "-jar", "app.jar"]
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} \
+    -Dspring.datasource.url=${DB_URL} \
+    -Dspring.datasource.username=${DB_USERNAME} \
+    -Dspring.datasource.password=${DB_PASSWORD} \
+    -Dspring.jpa.hibernate.ddl-auto=${JPA_DDL_AUTO} \
+    -Dspring.jpa.show-sql=${JPA_SHOW_SQL} \
+    -Dserver.port=${SERVER_PORT} \
+    -Dspring.kafka.bootstrap-servers=${SPRING_KAFKA_BOOTSTRAP_SERVERS} \
+    -Dspring.kafka.consumer.group-id=${SPRING_KAFKA_CONSUMER_GROUP_ID} \
+    -Dspring.data.redis.host=${SPRING_REDIS_HOST} \
+    -Dspring.data.redis.port=${SPRING_REDIS_PORT} \
+    -Dspring.data.redis.database=${SPRING_REDIS_DB} \
+    -Dmanagement.zipkin.tracing.endpoint=${ZIPKIN_URL} \
+    -jar app.jar"]

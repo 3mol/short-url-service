@@ -40,6 +40,7 @@ services:
       - SPRING_REDIS_PORT=6379
       - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
       - INSTANCE_ID=1
+      - JAVA_OPTS=-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+UseStringDeduplication -XX:+UseCompressedOops -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:/app/gc.log
     networks:
       - short-url-network
 
@@ -68,6 +69,7 @@ services:
       - SPRING_REDIS_PORT=6379
       - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
       - INSTANCE_ID=2
+      - JAVA_OPTS=-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+UseStringDeduplication -XX:+UseCompressedOops -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:/app/gc.log
     networks:
       - short-url-network
 
@@ -96,6 +98,7 @@ services:
       - SPRING_REDIS_PORT=6379
       - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
       - INSTANCE_ID=3
+      - JAVA_OPTS=-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+UseStringDeduplication -XX:+UseCompressedOops -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:/app/gc.log
     networks:
       - short-url-network
 
