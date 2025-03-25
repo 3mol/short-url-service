@@ -53,7 +53,7 @@ def setup_chinese_font():
         plt.rcParams['axes.unicode_minus'] = False
 
 # 从环境变量获取配置，如果不存在则使用默认值
-BASE_URL = os.environ.get('SHORT_URL_API', 'http://localhost:8080/short-url')
+BASE_URL = os.environ.get('SHORT_URL_API', 'http://localhost/short-url')
 NUM_REQUESTS = int(os.environ.get('TEST_REQUESTS', '10000'))
 MAX_WORKERS = int(os.environ.get('TEST_CONCURRENCY', '50'))
 SAVE_RESULTS = os.environ.get('SAVE_RESULTS', 'true').lower() == 'true'
@@ -295,7 +295,7 @@ def run_performance_test():
     if GENERATE_CHART and len(create_times) > 0 and len(get_times) > 0:
         generate_performance_chart(create_times, get_times, chart_file)
     
-    print("\n=" * 50)
+    print("=" * 50)
     print("性能测试完成")
     print("=" * 50)
 
