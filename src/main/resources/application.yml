@@ -2,7 +2,7 @@ server:
   port: 8080
   tomcat:
     threads:
-      max: 200
+      max: 350
       min-spare: 30
     max-connections: 8192
     accept-count: 100
@@ -39,7 +39,7 @@ spring:
         spring.json.type.mapping: shortUrlMessage:com.example.shorturl.message.ShortUrlMessage
     consumer:
       group-id: short-url-group
-      auto-offset-reset: earliest
+      auto-offset-reset: latest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       properties:
