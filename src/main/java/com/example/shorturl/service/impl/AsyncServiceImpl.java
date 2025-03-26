@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class AsyncServiceImpl implements AsyncService {
 
-    @Async
     @Override
+    @Async(value = "asyncExecutor")
     public void runSync(Runnable runnable) {
         runnable.run();
     }
